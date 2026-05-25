@@ -7,21 +7,18 @@
 ### Init
 - [x] Oracle Cloud Account erstellen + Free Tier aktivieren
 - [x] ARM A1 VM provisionieren
-- [ ] Tailscale auf Oracle VM installieren + ins Tailnet aufnehmen
-- [ ] DNS-Eintrag auf Oracle VM IP setzen (Cloudflare)
-- [ ] Nginx auf Oracle VM installieren + Grundkonfiguration
+- [x] Tailscale auf Oracle VM installieren + ins Tailnet aufnehmen
 - [x] Docker + Docker Compose auf Oracle VM installieren
 - [x] GitHub Repo `server-dashboard` anlegen
-- [ ] Grundstruktur nach projekt-plan.md anlegen
-- [ ] `.env.example` anlegen
+- [x] Grundstruktur nach projekt-plan.md anlegen
+- [x] `.env.example` anlegen
 - [x] `.gitignore` anlegen
 - [x] `LICENSE` (MIT) anlegen
-- [ ] Codespace einrichten + venv + requirements.txt
+- [x] Codespace einrichten + venv + requirements.txt
 
 ### Framework
 - [x] GitHub Actions Deployment-Pipeline anlegen
 - [x] git-cliff konfigurieren (`docs/cliff.toml`)
-- [ ] Docker Compose für Backend + Frontend + Nginx
 
 ### Backend
 - [ ] FastAPI Grundgerüst (`src/backend/main.py`)
@@ -32,8 +29,13 @@
 ### Frontend
 - [ ] SvelteKit Projekt initialisieren
 - [ ] Skeleton UI + Tailwind einrichten
-- [ ] Dark Mode als Default konfigurieren
+- [ ] Systemthema als Default konfigurieren
+- [ ] Layout-Konzept definieren (Seitenstruktur, Navigation, Routing-Schema)
 - [ ] Routing-Grundstruktur anlegen
+  - [ ] `/login` – Admin-Panel (eigenständige Page, eigener Einstiegspunkt)
+  - [ ] `/dashboard` – Hauptbereich (nur erreichbar nach Auth oder via Token)
+  - [ ] Redirect-Logik: Login → Dashboard (direkt nach erfolgreicher Auth)
+  - [ ] Token-basierter Zugang (Login überspringen wenn gültiger Token vorhanden)
 
 ### Features
 
@@ -42,11 +44,7 @@
 - [ ] TOTP 2FA (pyotp) implementieren
 - [ ] Tailscale IP-Whitelist (Middleware)
 - [ ] Session-Management
-
-#### feat: Agent-System
-- [ ] Agent-Registrierung im Backend
-- [ ] API-Key-Validierung
-- [ ] Heartbeat-Monitoring
+- [ ] Token-Validierung für direkten Dashboard-Zugang
 
 #### feat: Dashboard/Overview
 - [ ] CPU-Auslastung pro Server
@@ -89,5 +87,8 @@
 - [ ] –
 
 ### Deployment
+- [ ] DNS-Eintrag auf Oracle VM IP setzen (Cloudflare)
+- [ ] Nginx auf Oracle VM installieren + Grundkonfiguration
+- [ ] Docker Compose für Backend + Frontend + Nginx finalisieren
 - [ ] Erstes Deployment (bootstrap)
 - [ ] Bootstrap auf false setzen
