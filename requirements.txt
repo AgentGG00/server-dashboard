@@ -1,0 +1,7 @@
+fastapi
+uvicorn[standard]
+supabase
+cryptography
+pyotp
+httpx
+python-dotenv
