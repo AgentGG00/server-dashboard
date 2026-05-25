@@ -1,0 +1,1 @@
+# Markiert dieses Verzeichnis als Python-Package und ermöglicht relative Imports
