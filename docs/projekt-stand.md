@@ -21,15 +21,15 @@
 - [x] git-cliff konfigurieren (`docs/cliff.toml`)
 
 ### Backend
-- [ ] FastAPI Grundgerüst (`src/backend/main.py`)
-- [ ] Supabase Verbindung einrichten
-- [ ] DB-Verschlüsselung (AES-256) implementieren
-- [ ] DB-Schema (Migrations) anlegen
+- [x] FastAPI Grundgerüst (`src/backend/main.py`)
+- [x] Supabase Verbindung einrichten
+- [x] DB-Verschlüsselung (AES-256) implementieren
+- [x] DB-Schema (Migrations) anlegen
 
 ### Frontend
-- [ ] SvelteKit Projekt initialisieren
-- [ ] Skeleton UI + Tailwind einrichten
-- [ ] Systemthema als Default konfigurieren
+- [x] SvelteKit Projekt initialisieren
+- [x] Skeleton UI + Tailwind einrichten
+- [x] Systemthema als Default konfigurieren
 - [ ] Layout-Konzept definieren (Seitenstruktur, Navigation, Routing-Schema)
 - [ ] Routing-Grundstruktur anlegen
   - [ ] `/login` – Admin-Panel (eigenständige Page, eigener Einstiegspunkt)
@@ -90,5 +90,6 @@
 - [ ] DNS-Eintrag auf Oracle VM IP setzen (Cloudflare)
 - [ ] Nginx auf Oracle VM installieren + Grundkonfiguration
 - [ ] Docker Compose für Backend + Frontend + Nginx finalisieren
+- [ ] Supabase Backup auf VPS einrichten
 - [ ] Erstes Deployment (bootstrap)
 - [ ] Bootstrap auf false setzen
