@@ -32,6 +32,8 @@ MAIL_FROM = os.getenv("MAIL_FROM")
 
 
 def _get_fernet() -> Fernet:
+    if not ENCRYPTION_KEY:
+        raise ValueError("ENCRYPTION_KEY nicht gesetzt")
     return Fernet(ENCRYPTION_KEY.encode())
 
 
@@ -44,6 +46,8 @@ def _decrypt(value: str) -> str:
 
 
 def _send_otp_email(otp: str):
+    if not all([SMTP_HOST, SMTP_USER, SMTP_PASSWORD, MAIL_FROM, ALLOWED_EMAIL]):
+        raise ValueError("SMTP-Konfiguration unvollständig")
     body = (
         f"Dein Einmalpasswort für die Geräte-Freigabe:\n\n"
         f"  {otp}\n\n"
@@ -55,10 +59,10 @@ def _send_otp_email(otp: str):
     msg["To"] = ALLOWED_EMAIL
 
     try:
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as smtp:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as smtp:  # type: ignore[arg-type]
             smtp.starttls()
-            smtp.login(SMTP_USER, SMTP_PASSWORD)
-            smtp.sendmail(MAIL_FROM, ALLOWED_EMAIL, msg.as_string())
+            smtp.login(SMTP_USER, SMTP_PASSWORD)  # type: ignore[arg-type]
+            smtp.sendmail(MAIL_FROM, ALLOWED_EMAIL, msg.as_string())  # type: ignore[arg-type]
     except Exception as e:
         print(f"OTP Email-Versand fehlgeschlagen: {e}")
 
@@ -196,7 +200,6 @@ async def totp_verify_approve(request: Request):
 
     supabase = request.app.state.supabase
 
-    # Approve-Token prüfen
     result = supabase.table("approve_tokens").select("*").eq(
         "token", approve_token_hash
     ).eq("used", False).gt("expires_at", now).execute()
@@ -206,7 +209,6 @@ async def totp_verify_approve(request: Request):
 
     entry = result.data[0]
 
-    # TOTP prüfen
     totp_result = supabase.table("totp_secrets").select("secret_encrypted").execute()
     if not totp_result.data:
         raise HTTPException(status_code=500, detail="TOTP nicht eingerichtet")
@@ -217,7 +219,6 @@ async def totp_verify_approve(request: Request):
     if not totp.verify(code, valid_window=1):
         raise HTTPException(status_code=401, detail="Ungültiger TOTP-Code")
 
-    # OTP generieren und per Email schicken
     otp = str(random.randint(100000, 999999))
     otp_hash = hashlib.sha512(otp.encode()).hexdigest()
     otp_expires = (datetime.now(timezone.utc) + timedelta(minutes=10)).isoformat()
@@ -329,7 +330,6 @@ async def approve_confirm(token: str, request: Request):
         if (now - page_opened) > timedelta(minutes=10):
             raise HTTPException(status_code=408, detail="Session abgelaufen")
 
-    # OTP prüfen
     body = await request.json()
     otp_code = body.get("otp_code", "")
     otp_hash = hashlib.sha512(otp_code.encode()).hexdigest()
@@ -343,12 +343,10 @@ async def approve_confirm(token: str, request: Request):
     if not otp_result.data:
         raise HTTPException(status_code=401, detail="Ungültiges oder abgelaufenes OTP")
 
-    # OTP invalidieren
     supabase.table("approve_otp_codes").update({
         "used": True
     }).eq("id", otp_result.data[0]["id"]).execute()
 
-    # Gerät als trusted speichern
     raw_device_token = secrets.token_hex(64)
     device_token_hash = hashlib.sha512(raw_device_token.encode()).hexdigest()
     device_key_expires_at = (now + timedelta(days=90)).isoformat()
@@ -360,7 +358,6 @@ async def approve_confirm(token: str, request: Request):
         "device_key_expires_at": device_key_expires_at,
     }).execute()
 
-    # Approve-Token invalidieren
     supabase.table("approve_tokens").update({
         "used": True
     }).eq("id", entry["id"]).execute()

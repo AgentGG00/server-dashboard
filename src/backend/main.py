@@ -3,16 +3,15 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from supabase import create_client, Client
-from services.supabase_service import SupabaseService
-from routers.auth import router as auth_router
-from routers.settings import router as settings_router
-from middleware.device_check import DeviceCheckMiddleware
+from fastapi import FastAPI  # noqa: E402
+from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
+from supabase import create_client, Client  # noqa: E402
+from services.supabase_service import SupabaseService  # noqa: E402
+from routers.auth import router as auth_router  # noqa: E402
+from routers.settings import router as settings_router  # noqa: E402
+from middleware.device_check import DeviceCheckMiddleware  # noqa: E402
 
 app = FastAPI(title="server-dashboard")
-
 app.include_router(settings_router)
 
 app.add_middleware(
