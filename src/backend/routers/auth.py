@@ -2,9 +2,12 @@ import os
 import secrets
 import hashlib
 import base64
+import random
 import pyotp
 import qrcode
 import io
+import smtplib
+from email.mime.text import MIMEText
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Request, HTTPException
@@ -21,6 +24,11 @@ ALLOWED_EMAIL = os.getenv("ALLOWED_EMAIL")
 FRONTEND_URL = os.getenv("FRONTEND_URL")
 TOTP_ISSUER = os.getenv("TOTP_ISSUER", "server-dashboard")
 ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
+SMTP_HOST = os.getenv("SMTP_HOST")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_USER = os.getenv("SMTP_USER")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
+MAIL_FROM = os.getenv("MAIL_FROM")
 
 
 def _get_fernet() -> Fernet:
@@ -33,6 +41,26 @@ def _encrypt(value: str) -> str:
 
 def _decrypt(value: str) -> str:
     return _get_fernet().decrypt(value.encode()).decode()
+
+
+def _send_otp_email(otp: str):
+    body = (
+        f"Dein Einmalpasswort für die Geräte-Freigabe:\n\n"
+        f"  {otp}\n\n"
+        f"Gültig für 10 Minuten. Nicht weitergeben."
+    )
+    msg = MIMEText(body)
+    msg["Subject"] = "Server Dashboard – Einmalpasswort"
+    msg["From"] = MAIL_FROM
+    msg["To"] = ALLOWED_EMAIL
+
+    try:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as smtp:
+            smtp.starttls()
+            smtp.login(SMTP_USER, SMTP_PASSWORD)
+            smtp.sendmail(MAIL_FROM, ALLOWED_EMAIL, msg.as_string())
+    except Exception as e:
+        print(f"OTP Email-Versand fehlgeschlagen: {e}")
 
 
 @router.get("/google")
@@ -68,7 +96,6 @@ async def google_callback(request: Request, code: str, state: str):
 
     supabase = request.app.state.supabase
 
-    # Prüfen ob 3-Monats-Key gültig
     device_token = request.cookies.get("device_token")
     totp_required = True
 
@@ -83,7 +110,6 @@ async def google_callback(request: Request, code: str, state: str):
             totp_required = False
 
     if totp_required:
-        # Frontend zur TOTP-Eingabe weiterleiten
         pending_token = secrets.token_hex(32)
         pending_hash = hashlib.sha512(pending_token.encode()).hexdigest()
         expires_at = (datetime.now(timezone.utc) + timedelta(minutes=5)).isoformat()
@@ -105,7 +131,6 @@ async def google_callback(request: Request, code: str, state: str):
         )
         return response
 
-    # Kein TOTP nötig – direkt Session erstellen
     return _create_session_response(supabase)
 
 
@@ -130,7 +155,6 @@ async def totp_verify(request: Request):
     if not result.data:
         raise HTTPException(status_code=401, detail="Token abgelaufen")
 
-    # TOTP prüfen
     totp_result = supabase.table("totp_secrets").select("secret_encrypted").execute()
     if not totp_result.data:
         raise HTTPException(status_code=500, detail="TOTP nicht eingerichtet")
@@ -141,12 +165,10 @@ async def totp_verify(request: Request):
     if not totp.verify(code, valid_window=1):
         raise HTTPException(status_code=401, detail="Ungültiger TOTP-Code")
 
-    # Pending Session löschen
     supabase.table("sessions").delete().eq(
         "token_hash", pending_hash
     ).execute()
 
-    # 3-Monats-Key auf trusted_device aktualisieren
     device_token = request.cookies.get("device_token")
     if device_token:
         device_token_hash = hashlib.sha512(device_token.encode()).hexdigest()
@@ -158,6 +180,57 @@ async def totp_verify(request: Request):
     response = _create_session_response(supabase)
     response.delete_cookie("pending_token")
     return response
+
+
+@router.post("/totp/verify-approve")
+async def totp_verify_approve(request: Request):
+    body = await request.json()
+    code = body.get("code", "")
+    approve_token_raw = body.get("approve_token", "")
+
+    if not approve_token_raw:
+        raise HTTPException(status_code=400, detail="Kein Approve-Token")
+
+    approve_token_hash = hashlib.sha512(approve_token_raw.encode()).hexdigest()
+    now = datetime.now(timezone.utc).isoformat()
+
+    supabase = request.app.state.supabase
+
+    # Approve-Token prüfen
+    result = supabase.table("approve_tokens").select("*").eq(
+        "token", approve_token_hash
+    ).eq("used", False).gt("expires_at", now).execute()
+
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Approve-Token ungültig")
+
+    entry = result.data[0]
+
+    # TOTP prüfen
+    totp_result = supabase.table("totp_secrets").select("secret_encrypted").execute()
+    if not totp_result.data:
+        raise HTTPException(status_code=500, detail="TOTP nicht eingerichtet")
+
+    secret = _decrypt(totp_result.data[0]["secret_encrypted"])
+    totp = pyotp.TOTP(secret)
+
+    if not totp.verify(code, valid_window=1):
+        raise HTTPException(status_code=401, detail="Ungültiger TOTP-Code")
+
+    # OTP generieren und per Email schicken
+    otp = str(random.randint(100000, 999999))
+    otp_hash = hashlib.sha512(otp.encode()).hexdigest()
+    otp_expires = (datetime.now(timezone.utc) + timedelta(minutes=10)).isoformat()
+
+    supabase.table("approve_otp_codes").insert({
+        "approve_token_id": entry["id"],
+        "code_hash": otp_hash,
+        "expires_at": otp_expires,
+    }).execute()
+
+    _send_otp_email(otp)
+
+    return JSONResponse(content={"detail": "OTP verschickt"})
 
 
 @router.get("/totp/setup")
@@ -178,7 +251,6 @@ async def totp_setup(request: Request):
     totp = pyotp.TOTP(secret)
     uri = totp.provisioning_uri(name=ALLOWED_EMAIL, issuer_name=TOTP_ISSUER)
 
-    # QR-Code als Base64 generieren
     img = qrcode.make(uri)
     buffer = io.BytesIO()
     img.save(buffer, format="PNG")
@@ -257,6 +329,26 @@ async def approve_confirm(token: str, request: Request):
         if (now - page_opened) > timedelta(minutes=10):
             raise HTTPException(status_code=408, detail="Session abgelaufen")
 
+    # OTP prüfen
+    body = await request.json()
+    otp_code = body.get("otp_code", "")
+    otp_hash = hashlib.sha512(otp_code.encode()).hexdigest()
+
+    otp_result = supabase.table("approve_otp_codes").select("*").eq(
+        "approve_token_id", entry["id"]
+    ).eq("code_hash", otp_hash).eq("used", False).gt(
+        "expires_at", now.isoformat()
+    ).execute()
+
+    if not otp_result.data:
+        raise HTTPException(status_code=401, detail="Ungültiges oder abgelaufenes OTP")
+
+    # OTP invalidieren
+    supabase.table("approve_otp_codes").update({
+        "used": True
+    }).eq("id", otp_result.data[0]["id"]).execute()
+
+    # Gerät als trusted speichern
     raw_device_token = secrets.token_hex(64)
     device_token_hash = hashlib.sha512(raw_device_token.encode()).hexdigest()
     device_key_expires_at = (now + timedelta(days=90)).isoformat()
@@ -268,6 +360,7 @@ async def approve_confirm(token: str, request: Request):
         "device_key_expires_at": device_key_expires_at,
     }).execute()
 
+    # Approve-Token invalidieren
     supabase.table("approve_tokens").update({
         "used": True
     }).eq("id", entry["id"]).execute()

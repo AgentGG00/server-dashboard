@@ -55,3 +55,13 @@ CREATE TABLE approve_tokens (
     page_opened_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- OTP Codes (6-stellig, Einmalpasswort für Approve-Flow)
+CREATE TABLE approve_otp_codes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    approve_token_id UUID NOT NULL REFERENCES approve_tokens(id),
+    code_hash TEXT NOT NULL,
+    used BOOLEAN NOT NULL DEFAULT FALSE,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
