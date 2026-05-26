@@ -93,7 +93,9 @@ async def delete_session(session_id: str, request: Request):
 @router.post("/totp/reset")
 async def totp_reset(request: Request):
     supabase = request.app.state.supabase
-    supabase.table("totp_secrets").delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()
+    supabase.table("totp_secrets").delete().neq(
+        "id", "00000000-0000-0000-0000-000000000000"
+    ).execute()
     return {"detail": "TOTP zurückgesetzt – Setup unter /auth/totp/setup erforderlich"}
 
 
@@ -112,7 +114,7 @@ async def password_reset_request(request: Request):
         "expires_at": expires_at,
     }).execute()
 
-    reset_url = f"{FRONTEND_URL}/settings/password-reset/{raw_token}"
+    reset_url = f"{FRONTEND_URL}/password-reset/{raw_token}"
 
     try:
         _send_mail(
@@ -127,6 +129,22 @@ async def password_reset_request(request: Request):
         raise HTTPException(status_code=500, detail=f"Email-Versand fehlgeschlagen: {e}")
 
     return {"detail": "Reset-Link verschickt"}
+
+
+@router.get("/password-reset/{token}/validate")
+async def password_reset_validate(token: str, request: Request):
+    supabase = request.app.state.supabase
+    token_hash = hashlib.sha512(token.encode()).hexdigest()
+    now = datetime.now(timezone.utc).isoformat()
+
+    result = supabase.table("password_reset_tokens").select("id").eq(
+        "token", token_hash
+    ).eq("used", False).gt("expires_at", now).execute()
+
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Link ungültig oder abgelaufen")
+
+    return {"valid": True}
 
 
 @router.post("/password-reset/{token}/confirm")
