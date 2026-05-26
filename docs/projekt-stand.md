@@ -30,19 +30,19 @@
 - [x] SvelteKit Projekt initialisieren
 - [x] Skeleton UI + Tailwind einrichten
 - [x] Systemthema als Default konfigurieren
-- [ ] Layout-Konzept definieren (Seitenstruktur, Navigation, Routing-Schema)
-- [ ] Routing-Grundstruktur anlegen
-  - [ ] `/login` – Admin-Panel (eigenständige Page, eigener Einstiegspunkt)
-  - [ ] `/dashboard` – Hauptbereich (nur erreichbar nach Auth oder via Token)
-  - [ ] Redirect-Logik: Login → Dashboard (direkt nach erfolgreicher Auth)
-  - [ ] Token-basierter Zugang (Login überspringen wenn gültiger Token vorhanden)
+- [x] Layout-Konzept definieren (Seitenstruktur, Navigation, Routing-Schema)
+- [x] Routing-Grundstruktur anlegen
+- [x] Auth-Guard (`/dashboard` +layout.server.ts)
+- [ ] Login-Page (`/login`)
+- [ ] Dashboard-Layout (Sidebar + Topbar)
+- [ ] Server-Redirect (`/dashboard` → letzter Server / erster aus DB)
+- [ ] Cookie-Handling (last_server)
 
 ### Features
 
 #### feat: Auth
 - [ ] Google OAuth 2.0 Integration (nur eigene Gmail)
 - [ ] TOTP 2FA (pyotp) implementieren
-- [ ] Tailscale IP-Whitelist (Middleware)
 - [ ] Session-Management
 - [ ] Token-Validierung für direkten Dashboard-Zugang
 
