@@ -65,3 +65,48 @@ eigener Server-Infrastruktur über eine Webapp.
 - **UFW-Verwaltung** – Regeln anzeigen, hinzufügen, löschen
 - **Server-Steuerung** – Reboot, Shutdown über Agent
 - **Contabo-Integration** – VPS starten, Rescue-Modus über Contabo API
+
+## Erweiterungen
+
+### Auth-System (detailliert)
+
+Dreischichtiges Auth-System:
+
+**Schicht 1 – Nginx IP-Whitelist**
+Nur Tailscale-IPs kommen durch. Alle anderen IPs erhalten connection refused – kein HTTP-Response, kein Redirect. Verhindert strukturell Brute Force und macht Rate-Limiting überflüssig.
+
+**Schicht 2 – Geräte-Check**
+Jedes Gerät wird anhand Tailscale-IP + User-Agent identifiziert. Beide Werte müssen bekannt sein und zusammenpassen. Bei unbekannter Kombination:
+- HTTP 401
+- Email-Benachrichtigung an Admin
+- Approve-Link mit kryptografisch zufälliger URL (64+ Zeichen)
+- One-Time-Use: nach einmaligem Aufruf sofort invalidiert → 404
+- 10 Minuten Gültigkeit ab Email-Versand
+- Approve-Page offen: 10 Minuten bis Session-Timeout (408)
+- Approve-Flow: Gmail OAuth + TOTP + Einmalpasswort per Email
+- Gerät wird als trusted gespeichert (IP + User-Agent in DB)
+- Approve-Page erreichbar von jedem Gerät (nur per Link)
+
+**Schicht 3 – Login**
+- Bekanntes Gerät + gültiger 3-Monats-Key → nur Gmail OAuth
+- Bekanntes Gerät + abgelaufener Key → Gmail OAuth + TOTP → neuer 3-Monats-Key
+- Session: 6h Token als httponly Cookie
+- Rejoin innerhalb 6h ohne erneuten Login
+
+### Routing-Schema
+
+- / → redirect /login
+- /login → Auth-Page
+- /dashboard → redirect letzter Server (Cookie) oder erster aus DB (nach Priorität)
+- /dashboard/[server] → Overview
+- /dashboard/[server]/systemd → Systemd-View
+- /dashboard/[server]/firewall → Firewall-View
+- /dashboard/[server]/apache → Apache-View
+- /dashboard/[server]/docker → Docker-View
+
+Server-Identifikation: Hostname wird vom Agent beim Registrieren übertragen. Kein hartcodierter Default. Server-Reihenfolge konfigurierbar über Priorität in Settings.
+
+### Settings (geplant)
+- Agent-Verwaltung: hinzufügen, entfernen, reconnect
+- Server-Prioritätsreihenfolge konfigurieren
+- API-Key Rotation + Korruptionssicherung

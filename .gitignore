@@ -72,7 +72,3 @@ tempCodeRunnerFile.py
 *.log
 
 # Project specific
-src/backend/models/
-src/backend/schemas/
-src/backend/routers/
-src/db/seeds/

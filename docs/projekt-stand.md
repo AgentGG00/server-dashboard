@@ -33,10 +33,10 @@
 - [x] Layout-Konzept definieren (Seitenstruktur, Navigation, Routing-Schema)
 - [x] Routing-Grundstruktur anlegen
 - [x] Auth-Guard (`/dashboard` +layout.server.ts)
-- [ ] Login-Page (`/login`)
-- [ ] Dashboard-Layout (Sidebar + Topbar)
-- [ ] Server-Redirect (`/dashboard` → letzter Server / erster aus DB)
-- [ ] Cookie-Handling (last_server)
+- [x] Login-Page (`/login`)
+- [x] Dashboard-Layout (Sidebar + Topbar)
+- [x] Server-Redirect (`/dashboard` → letzter Server / erster aus DB)
+- [x] Cookie-Handling (last_server)
 
 ### Features
 
@@ -50,10 +50,9 @@
   - [ ] Single-Use Invalidierung nach Aufruf (404)
   - [ ] Gmail OAuth + TOTP + Einmalpasswort per Email
   - [ ] Gerät als trusted speichern (IP + User-Agent)
-- [ ] Login-Page
-  - [ ] Gmail OAuth (nur eigene Email)
-  - [ ] TOTP bei neuem Gerät oder 3-Monats-Key abgelaufen
-  - [ ] 3-Monats-Key speichern (TOTP-Skip)
+- [ ] Gmail OAuth (nur eigene Email) – `/auth/google` + `/auth/callback`
+- [ ] TOTP bei neuem Gerät oder 3-Monats-Key abgelaufen
+- [ ] 3-Monats-Key speichern (TOTP-Skip)
 - [ ] Session-Management (6h Token)
 - [ ] Token-Validierung für direkten Dashboard-Zugang (rejoin)
 
