@@ -8,8 +8,8 @@ export const load: LayoutServerLoad = async ({ cookies, fetch, params }) => {
         throw redirect(302, '/login');
     }
 
-    const res = await fetch(`${process.env.API_URL}/auth/verify`, {
-        headers: { Authorization: `Bearer ${token}` }
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/verify`, {
+        credentials: 'include',
     });
 
     if (!res.ok) {
@@ -19,12 +19,11 @@ export const load: LayoutServerLoad = async ({ cookies, fetch, params }) => {
 
     const user = await res.json();
 
-    const serversRes = await fetch(`${process.env.API_URL}/servers`, {
-        headers: { Authorization: `Bearer ${token}` }
+    const serversRes = await fetch(`${import.meta.env.VITE_API_URL}/servers`, {
+        credentials: 'include',
     });
 
     const servers = serversRes.ok ? await serversRes.json() : [];
-
     const currentServer = params.server ?? cookies.get('last_server') ?? servers[0]?.id ?? null;
 
     return { user, servers, currentServer };

@@ -264,7 +264,7 @@ async def totp_setup(request: Request):
 
 @router.get("/verify")
 async def verify_session(request: Request):
-    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    token = request.cookies.get("session_token")
 
     if not token:
         raise HTTPException(status_code=401, detail="No token")
@@ -275,7 +275,7 @@ async def verify_session(request: Request):
     supabase = request.app.state.supabase
     result = supabase.table("sessions").select("*").eq(
         "token_hash", token_hash
-    ).gt("expires_at", now).execute()
+    ).eq("pending_totp", False).gt("expires_at", now).execute()
 
     if not result.data:
         raise HTTPException(status_code=401, detail="Invalid or expired session")
