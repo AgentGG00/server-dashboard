@@ -2,7 +2,7 @@
     import { page } from '$app/stores';
     import { goto } from '$app/navigation';
 
-    const { data } = $props();
+    const { data, children } = $props();
 
     function switchServer(event: Event) {
         const id = (event.target as HTMLSelectElement).value;
@@ -11,4 +11,4 @@
     }
 </script>
 
-<slot />
+{@render children()}

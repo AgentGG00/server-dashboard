@@ -1,4 +1,3 @@
-return result.data[0]  # type: ignore
 from supabase import Client
 from services.encryption import encrypt, decrypt, hash_api_key, hash_password, verify_password
 

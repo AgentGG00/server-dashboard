@@ -206,7 +206,7 @@
                     {:else if devices.length === 0}
                         <p class="text-surface-500-400 text-sm">Keine Geräte vorhanden.</p>
                     {:else}
-                        <div class="flex flex-col gap-2">
+                        <div class="flex flex-col gap-2" role="list">
                             {#each devices as device}
                                 <div class="card preset-tonal-surface p-3 flex items-center justify-between gap-4">
                                     <div class="flex flex-col gap-0.5 min-w-0">
@@ -232,7 +232,7 @@
                     {:else if sessions.length === 0}
                         <p class="text-surface-500-400 text-sm">Keine aktiven Sessions.</p>
                     {:else}
-                        <div class="flex flex-col gap-2">
+                        <div class="flex flex-col gap-2" role="list">
                             {#each sessions as session}
                                 <div class="card preset-tonal-surface p-3 flex items-center justify-between gap-4">
                                     <div class="flex flex-col gap-0.5">
@@ -293,9 +293,10 @@
                         <p class="text-surface-500-400 text-sm">Keine Agents registriert.</p>
                     {:else}
                         <p class="text-surface-500-400 text-xs">Ziehen zum Sortieren der Priorität.</p>
-                        <div class="flex flex-col gap-2">
+                        <div class="flex flex-col gap-2" role="list">
                             {#each agents as agent, i}
                                 <div
+                                    role="listitem"
                                     draggable="true"
                                     ondragstart={() => onDragStart(i)}
                                     ondragover={onDragOver}
