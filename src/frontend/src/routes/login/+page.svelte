@@ -1,5 +1,8 @@
 <script lang="ts">
+    import { page } from '$app/stores';
+
     let loading = $state(false);
+    let approved = $derived($page.url.searchParams.get('approved') === 'true');
 
     async function handleLogin() {
         loading = true;
@@ -13,6 +16,12 @@
             <h1 class="text-2xl font-bold">Server Dashboard</h1>
             <p class="text-surface-500-400 text-sm">Anmeldung erforderlich</p>
         </div>
+
+        {#if approved}
+            <p class="text-success-500 text-sm text-center">
+                Gerät freigegeben – du kannst dich jetzt anmelden
+            </p>
+        {/if}
 
         <button
             onclick={handleLogin}
