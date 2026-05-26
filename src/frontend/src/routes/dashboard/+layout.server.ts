@@ -1,7 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
 
-export const load: LayoutServerLoad = async ({ cookies, fetch }) => {
+export const load: LayoutServerLoad = async ({ cookies, fetch, params }) => {
     const token = cookies.get('session_token');
 
     if (!token) {
@@ -9,9 +9,7 @@ export const load: LayoutServerLoad = async ({ cookies, fetch }) => {
     }
 
     const res = await fetch(`${process.env.API_URL}/auth/verify`, {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` }
     });
 
     if (!res.ok) {
@@ -20,5 +18,14 @@ export const load: LayoutServerLoad = async ({ cookies, fetch }) => {
     }
 
     const user = await res.json();
-    return { user };
+
+    const serversRes = await fetch(`${process.env.API_URL}/servers`, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const servers = serversRes.ok ? await serversRes.json() : [];
+
+    const currentServer = params.server ?? cookies.get('last_server') ?? servers[0]?.id ?? null;
+
+    return { user, servers, currentServer };
 };
