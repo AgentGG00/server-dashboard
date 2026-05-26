@@ -41,10 +41,21 @@
 ### Features
 
 #### feat: Auth
-- [ ] Google OAuth 2.0 Integration (nur eigene Gmail)
-- [ ] TOTP 2FA (pyotp) implementieren
-- [ ] Session-Management
-- [ ] Token-Validierung für direkten Dashboard-Zugang
+- [ ] Geräte-Check Middleware (Tailscale-IP + User-Agent)
+- [ ] 401-Handler + Email-Benachrichtigung bei unbekanntem Gerät
+- [ ] Approve-Flow
+  - [ ] Kryptografische One-Time-URL generieren (64+ Zeichen)
+  - [ ] 10min Gültigkeit ab Email-Versand
+  - [ ] 10min Session-Timeout auf Approve-Page (408)
+  - [ ] Single-Use Invalidierung nach Aufruf (404)
+  - [ ] Gmail OAuth + TOTP + Einmalpasswort per Email
+  - [ ] Gerät als trusted speichern (IP + User-Agent)
+- [ ] Login-Page
+  - [ ] Gmail OAuth (nur eigene Email)
+  - [ ] TOTP bei neuem Gerät oder 3-Monats-Key abgelaufen
+  - [ ] 3-Monats-Key speichern (TOTP-Skip)
+- [ ] Session-Management (6h Token)
+- [ ] Token-Validierung für direkten Dashboard-Zugang (rejoin)
 
 #### feat: Dashboard/Overview
 - [ ] CPU-Auslastung pro Server
