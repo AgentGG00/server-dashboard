@@ -14,3 +14,4 @@ jobs:
       host: ${{ secrets.DASHBOARD_HOST }}
       user: ${{ secrets.DASHBOARD_USER }}
       ssh_key: ${{ secrets.DASHBOARD_SSH_KEY }}
+      env_content: ${{ secrets.DASHBOARD_ENV }}

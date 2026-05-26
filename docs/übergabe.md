@@ -173,14 +173,22 @@ Tabellen in `src/db/migrations/0001_init_tables.sql`:
 - `VITE_API_URL` für Frontend-API-Calls (nicht `process.env`)
 - Migrations liegen in `src/db/migrations/`
 
+**Deployment:**
+- Dockerfile: Multi-Stage Build – Node für Frontend-Build, Python als Runtime, supervisord verwaltet beide Prozesse
+- SvelteKit nutzt `adapter-node` – läuft als Node-Server auf Port 3000
+- Backend läuft auf Port 8000, Frontend auf Port 3000, Nginx als Reverse Proxy auf 80/443
+- Nginx IP-Whitelist: Tailscale Subnet `100.64.0.0/10`
+- TLS via Certbot + Cloudflare DNS-Challenge, Zertifikat liegt auf VM unter `/etc/letsencrypt`
+- GHCR Push und GitHub Release nutzen PAT (Org Secret `PAT`) damit nachfolgende Workflow-Trigger feuern
+- `.env` wird beim Bootstrap direkt aus Org Secret `DASHBOARD_ENV` geschrieben
+
 ---
 
 ## Nächste Schritte
 
-1. Verwaiste Dateien `26.1.1` und `=1.6.0` im Root löschen
-2. DNS-Eintrag auf Oracle VM IP setzen (Cloudflare)
-3. Nginx-Config schreiben (Reverse Proxy + Tailscale IP-Whitelist)
-4. Docker Compose für Backend + Frontend + Nginx finalisieren
-5. Supabase Migration ausführen (erster Deploy)
-6. Erstes Deployment (bootstrap)
-7. Bootstrap auf false setzen
+1. DNS-Eintrag `dashboard.framenode.net` auf Oracle VM IP setzen (Cloudflare)
+2. Certbot + Cloudflare DNS-Challenge auf VM einrichten, Zertifikat ausstellen
+3. PR auf main – Pipeline durchlaufen lassen
+4. Supabase Migration ausführen
+5. Erstes Deployment prüfen (bootstrap)
+6. Bootstrap auf false setzen

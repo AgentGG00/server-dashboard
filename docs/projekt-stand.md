@@ -114,9 +114,14 @@
 
 ### Deployment
 - [x] requirements.txt Patch-Version eingefroren (`~=X.Y.Z`)
+- [x] Nginx-Config (Reverse Proxy + Tailscale IP-Whitelist + HTTPS)
+- [x] Docker Compose für Backend + Frontend + Nginx finalisieren
+- [x] Dockerfile mit Multi-Stage Build + supervisord
+- [x] SvelteKit adapter-node eingerichtet
+- [x] GitHub Actions Pipeline mit PAT verdrahtet
+- [x] DASHBOARD_ENV als Org Secret angelegt
 - [ ] DNS-Eintrag auf Oracle VM IP setzen (Cloudflare)
-- [ ] Nginx-Config (Reverse Proxy + Tailscale IP-Whitelist)
-- [ ] Docker Compose für Backend + Frontend + Nginx finalisieren
+- [ ] Zertifikat via Certbot + Cloudflare DNS-Challenge ausstellen
 - [ ] Supabase Migration ausführen (erster Deploy)
 - [ ] Erstes Deployment (bootstrap)
 - [ ] Bootstrap auf false setzen
