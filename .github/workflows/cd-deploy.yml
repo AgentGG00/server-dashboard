@@ -12,8 +12,9 @@ jobs:
     uses: AgentGG00/workflows/.github/workflows/cd-deploy.yml@main
     with:
       project_name: "server-dashboard"
-      bootstrap: false
+      bootstrap: true
     secrets:
-      host: ${{ secrets.SERVER_HOST }}
-      user: ${{ secrets.SERVER_USER }}
-      ssh_key: ${{ secrets.SERVER_SSH_KEY }}
+      host: ${{ secrets.DASHBOARD_HOST }}
+      user: ${{ secrets.DASHBOARD_USER }}
+      ssh_key: ${{ secrets.DASHBOARD_SSH_KEY }}
+      env_content: ${{ secrets.DASHBOARD_ENV }}
