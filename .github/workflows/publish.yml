@@ -1,11 +1,14 @@
 name: Publish
-
 on:
   workflow_run:
     workflows: ["CI Build"]
     types:
       - completed
-
+      
+permissions:
+  packages: write
+  contents: read
+  
 jobs:
   publish:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
