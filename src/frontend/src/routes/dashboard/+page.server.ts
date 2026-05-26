@@ -8,12 +8,17 @@ export const load: PageServerLoad = async ({ cookies, fetch }) => {
         throw redirect(302, `/dashboard/${lastServer}`);
     }
 
-    const res = await fetch(`${process.env.API_URL}/servers/first`);
+    const res = await fetch(`${process.env.API_URL}/servers`);
 
     if (!res.ok) {
         throw redirect(302, '/login');
     }
 
-    const { id } = await res.json();
-    throw redirect(302, `/dashboard/${id}`);
+    const servers = await res.json();
+
+    if (!servers.length) {
+        throw redirect(302, '/login');
+    }
+
+    throw redirect(302, `/dashboard/${servers[0].id}`);
 };
