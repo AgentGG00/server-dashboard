@@ -5,9 +5,10 @@ on:
     branches:
       - main
 
+permissions:
+  pull-requests: write
+
 jobs:
   review:
     uses: AgentGG00/workflows/.github/workflows/review.yml@main
     secrets: inherit
-    permissions:
-      pull-requests: write
