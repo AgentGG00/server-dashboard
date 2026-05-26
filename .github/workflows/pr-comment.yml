@@ -6,9 +6,13 @@ on:
     types:
       - completed
 
+permissions:
+  pull-requests: write
+  actions: read
+
 jobs:
   comment:
     uses: AgentGG00/workflows/.github/workflows/pr-comment.yml@main
-    secrets: inherit
     with:
       pr_number: ${{ github.event.workflow_run.pull_requests[0].number }}
+    secrets: inherit
