@@ -1,7 +1,5 @@
 # Webdashboard (Visuelles Serververwaltungs Webapp) – Projekt-Stand
-
 ---
-
 ## Checklist
 
 ### Init
@@ -41,20 +39,33 @@
 ### Features
 
 #### feat: Auth
-- [ ] Geräte-Check Middleware (Tailscale-IP + User-Agent)
-- [ ] 401-Handler + Email-Benachrichtigung bei unbekanntem Gerät
-- [ ] Approve-Flow
-  - [ ] Kryptografische One-Time-URL generieren (64+ Zeichen)
-  - [ ] 10min Gültigkeit ab Email-Versand
-  - [ ] 10min Session-Timeout auf Approve-Page (408)
-  - [ ] Single-Use Invalidierung nach Aufruf (404)
-  - [ ] Gmail OAuth + TOTP + Einmalpasswort per Email
-  - [ ] Gerät als trusted speichern (IP + User-Agent)
-- [ ] Gmail OAuth (nur eigene Email) – `/auth/google` + `/auth/callback`
-- [ ] TOTP bei neuem Gerät oder 3-Monats-Key abgelaufen
-- [ ] 3-Monats-Key speichern (TOTP-Skip)
-- [ ] Session-Management (6h Token)
-- [ ] Token-Validierung für direkten Dashboard-Zugang (rejoin)
+- [x] Geräte-Check Middleware (Tailscale-IP + User-Agent + Device-Token)
+- [x] 401-Handler + Email-Benachrichtigung bei unbekanntem Gerät (Brevo SMTP)
+- [x] Approve-Flow
+- [x] Kryptografische One-Time-URL generieren (64+ Zeichen)
+- [x] 10min Gültigkeit ab Email-Versand
+- [x] 10min Session-Timeout auf Approve-Page (408)
+- [x] Single-Use Invalidierung nach Aufruf (404)
+- [x] Google OAuth + TOTP + Einmalpasswort per Email
+- [x] Gerät als trusted speichern (IP + User-Agent + Device-Token)
+- [x] Google OAuth (nur eigene Email) – `/auth/google` + `/auth/callback`
+- [x] TOTP bei neuem Gerät oder 3-Monats-Key abgelaufen
+- [x] 3-Monats-Key speichern (TOTP-Skip)
+- [x] Session-Management (6h Token)
+- [x] Token-Validierung für direkten Dashboard-Zugang (Cookie-basiert)
+
+#### feat: Settings
+- [x] Test-Mail verschicken
+- [x] Trusted Devices anzeigen + entfernen
+- [x] Aktive Sessions anzeigen + invalidieren
+- [x] TOTP zurücksetzen
+- [x] Passwort-Reset (One-Time-URL Flow, 10min)
+- [x] Agent-Liste + entfernen + Priorität sortieren (UI)
+- [x] Settings-Modal (Backdrop-Blur, Tab-Navigation)
+- [x] Password-Reset-Page (`/password-reset/[token]`)
+
+#### feat: Error-Pages
+- [x] Dynamische Error-Page (401, 403, 404, 408, 410, 500)
 
 #### feat: Dashboard/Overview
 - [ ] CPU-Auslastung pro Server
@@ -91,15 +102,21 @@
 - [ ] Rescue-Modus über Contabo API
 
 ### Fix
-- [ ] –
+- [x] `<a` Tag fehlend in Sidebar.svelte
+- [x] `return` außerhalb Funktion in supabase_service.py
+- [x] `<slot />` → `{@render children()}` in [server]/+layout.svelte
+- [x] `process.env.API_URL` → `import.meta.env.VITE_API_URL`
+- [x] Ordner `approved/` → `approve/`, `passwort-reset/` → `password-reset/`
+- [x] Verwaiste Dateien `26.1.1` und `=1.6.0` im Root entfernt
 
 ### Test / Review
 - [ ] –
 
 ### Deployment
+- [x] requirements.txt Patch-Version eingefroren (`~=X.Y.Z`)
 - [ ] DNS-Eintrag auf Oracle VM IP setzen (Cloudflare)
-- [ ] Nginx auf Oracle VM installieren + Grundkonfiguration
+- [ ] Nginx-Config (Reverse Proxy + Tailscale IP-Whitelist)
 - [ ] Docker Compose für Backend + Frontend + Nginx finalisieren
-- [ ] Supabase Backup auf VPS einrichten
+- [ ] Supabase Migration ausführen (erster Deploy)
 - [ ] Erstes Deployment (bootstrap)
 - [ ] Bootstrap auf false setzen
