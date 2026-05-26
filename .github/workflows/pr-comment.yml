@@ -1,0 +1,14 @@
+name: PR Comment
+
+on:
+  workflow_run:
+    workflows: ["Review"]
+    types:
+      - completed
+
+jobs:
+  comment:
+    uses: AgentGG00/workflows/.github/workflows/pr-comment.yml@main
+    secrets: inherit
+    with:
+      pr_number: ${{ github.event.workflow_run.pull_requests[0].number }}
