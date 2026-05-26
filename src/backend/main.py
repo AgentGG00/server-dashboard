@@ -6,10 +6,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from supabase import create_client, Client
 from services.supabase_service import SupabaseService
 from routers.auth import router as auth_router
+from routers.settings import router as settings_router
 from middleware.device_check import DeviceCheckMiddleware
 import os
 
 app = FastAPI(title="server-dashboard")
+
+app.include_router(settings_router)
 
 app.add_middleware(
     CORSMiddleware,
