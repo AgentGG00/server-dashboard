@@ -6,7 +6,6 @@ from email.mime.text import MIMEText
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Request, HTTPException
-from fastapi.responses import JSONResponse
 
 router = APIRouter(prefix="/settings", tags=["settings"])
 

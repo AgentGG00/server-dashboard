@@ -1,4 +1,6 @@
+import os
 from dotenv import load_dotenv
+
 load_dotenv()
 
 from fastapi import FastAPI
@@ -8,7 +10,6 @@ from services.supabase_service import SupabaseService
 from routers.auth import router as auth_router
 from routers.settings import router as settings_router
 from middleware.device_check import DeviceCheckMiddleware
-import os
 
 app = FastAPI(title="server-dashboard")
 
@@ -31,7 +32,6 @@ if not supabase_url or not supabase_key:
 
 supabase: Client = create_client(supabase_url, supabase_key)
 supabase_service = SupabaseService(supabase)
-
 app.state.supabase = supabase
 
 app.include_router(auth_router)
