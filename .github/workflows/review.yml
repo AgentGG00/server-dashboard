@@ -7,8 +7,17 @@ on:
 
 permissions:
   pull-requests: write
+  actions: write
 
 jobs:
   review:
     uses: AgentGG00/workflows/.github/workflows/review.yml@main
+    secrets: inherit
+
+  comment:
+    needs: review
+    if: always()
+    uses: AgentGG00/workflows/.github/workflows/pr-comment.yml@main
+    with:
+      pr_number: ${{ github.event.pull_request.number }}
     secrets: inherit
