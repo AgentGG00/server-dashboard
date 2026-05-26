@@ -1,12 +1,19 @@
 name: Publish
+
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_run:
+    workflows: ["CI Build"]
+    types:
+      - completed
+
 permissions:
   packages: write
   contents: read
+
 jobs:
   publish:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     uses: AgentGG00/workflows/.github/workflows/publish.yml@main
+    with:
+      tag: ${{ github.event.workflow_run.head_branch }}
     secrets: inherit
