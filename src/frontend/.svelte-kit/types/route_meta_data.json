@@ -1,0 +1,34 @@
+{
+	"/": [
+		"src/routes/+page.server.ts"
+	],
+	"/approve/[token]": [
+		"src/routes/approve/[token]/+page.server.ts"
+	],
+	"/dashboard": [
+		"src/routes/dashboard/+page.server.ts",
+		"src/routes/dashboard/+layout.server.ts",
+		"src/routes/dashboard/+layout.server.ts"
+	],
+	"/dashboard/[server]": [
+		"src/routes/dashboard/+layout.server.ts",
+		"src/routes/dashboard/+layout.server.ts"
+	],
+	"/dashboard/[server]/apache": [
+		"src/routes/dashboard/+layout.server.ts"
+	],
+	"/dashboard/[server]/docker": [
+		"src/routes/dashboard/+layout.server.ts"
+	],
+	"/dashboard/[server]/firewall": [
+		"src/routes/dashboard/+layout.server.ts"
+	],
+	"/dashboard/[server]/systemd": [
+		"src/routes/dashboard/+layout.server.ts"
+	],
+	"/login": [],
+	"/login/totp": [],
+	"/password-reset/[token]": [
+		"src/routes/password-reset/[token]/+page.server.ts"
+	]
+}
