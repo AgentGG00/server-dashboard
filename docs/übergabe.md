@@ -192,3 +192,6 @@ Tabellen in `src/db/migrations/0001_init_tables.sql`:
 4. Supabase Migration ausführen
 5. Erstes Deployment prüfen (bootstrap)
 6. Bootstrap auf false setzen
+
+
+bottstrap fehler beheben 
