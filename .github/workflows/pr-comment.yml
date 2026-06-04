@@ -51,7 +51,12 @@ jobs:
             ${secrets === 'failure' ? '> 🔐 Mögliche Secrets gefunden – siehe Gitleaks Job-Log.' : ''}
             `;
 
-            const pr_number = ${{ github.event.workflow_run.pull_requests[0].number }};
+            const prs = ${{ toJson(github.event.workflow_run.pull_requests) }};
+            if (!prs || prs.length === 0) {
+              console.log('Kein PR gefunden, skip.');
+              return;
+            }
+            const pr_number = prs[0].number;
 
             github.rest.issues.createComment({
               issue_number: pr_number,

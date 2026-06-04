@@ -12,7 +12,6 @@ from routers.settings import router as settings_router  # noqa: E402
 from middleware.device_check import DeviceCheckMiddleware  # noqa: E402
 
 app = FastAPI(title="server-dashboard")
-app.include_router(settings_router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -34,6 +33,7 @@ supabase_service = SupabaseService(supabase)
 app.state.supabase = supabase
 
 app.include_router(auth_router)
+app.include_router(settings_router)
 
 @app.get("/health")
 async def health():

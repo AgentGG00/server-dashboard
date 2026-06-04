@@ -6,7 +6,7 @@
 
     async function handleLogin() {
         loading = true;
-        window.location.href = '/auth/google';
+        window.location.href = '/api/auth/google';
     }
 </script>
 

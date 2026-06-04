@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Request, HTTPException
 
-router = APIRouter(prefix="/settings", tags=["settings"])
+router = APIRouter(prefix="/api/settings", tags=["settings"])
 
 SMTP_HOST = os.getenv("SMTP_HOST")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
@@ -19,14 +19,16 @@ FRONTEND_URL = os.getenv("FRONTEND_URL")
 
 
 def _send_mail(subject: str, body: str):
+    assert MAIL_FROM is not None
+    assert ALLOWED_EMAIL is not None
     msg = MIMEText(body)
     msg["Subject"] = subject
     msg["From"] = MAIL_FROM
     msg["To"] = ALLOWED_EMAIL
 
-    with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as smtp:
+    with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as smtp:  # type: ignore[arg-type]
         smtp.starttls()
-        smtp.login(SMTP_USER, SMTP_PASSWORD)
+        smtp.login(SMTP_USER, SMTP_PASSWORD)  # type: ignore[arg-type]
         smtp.sendmail(MAIL_FROM, ALLOWED_EMAIL, msg.as_string())
 
 
@@ -95,7 +97,7 @@ async def totp_reset(request: Request):
     supabase.table("totp_secrets").delete().neq(
         "id", "00000000-0000-0000-0000-000000000000"
     ).execute()
-    return {"detail": "TOTP zurückgesetzt – Setup unter /auth/totp/setup erforderlich"}
+    return {"detail": "TOTP zurückgesetzt – Setup unter /api/auth/totp/setup erforderlich"}
 
 
 # ── Passwort-Reset ───────────────────────────────────────────────────────────
