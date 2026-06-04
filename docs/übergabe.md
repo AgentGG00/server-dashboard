@@ -68,7 +68,7 @@ server-dashboard/
 │   │   │   └── encryption.py
 │   │   ├── models/
 │   │   └── schemas/
-│   ├── db/
+│   ├── supabase/
 │   │   └── migrations/
 │   │       └── 0001_init_tables.sql
 │   └── frontend/
@@ -121,7 +121,7 @@ server-dashboard/
 
 ## DB-Schema
 
-Tabellen in `src/db/migrations/0001_init_tables.sql`:
+Tabellen in `src/supabase/migrations/0001_init_tables.sql`:
 
 - `servers` – registrierte Server (hostname, name, ip, api_key_hash, priority)
 - `sessions` – Auth-Sessions (token_hash SHA-512, expires_at 6h, pending_totp)
