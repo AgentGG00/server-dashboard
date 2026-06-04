@@ -15,7 +15,7 @@ from fastapi.responses import RedirectResponse, JSONResponse
 from authlib.integrations.httpx_client import AsyncOAuth2Client
 from cryptography.fernet import Fernet
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
@@ -48,6 +48,8 @@ def _decrypt(value: str) -> str:
 def _send_otp_email(otp: str):
     if not all([SMTP_HOST, SMTP_USER, SMTP_PASSWORD, MAIL_FROM, ALLOWED_EMAIL]):
         raise ValueError("SMTP-Konfiguration unvollständig")
+    assert MAIL_FROM is not None
+    assert ALLOWED_EMAIL is not None
     body = (
         f"Dein Einmalpasswort für die Geräte-Freigabe:\n\n"
         f"  {otp}\n\n"
@@ -69,31 +71,39 @@ def _send_otp_email(otp: str):
 
 @router.get("/google")
 async def google_login():
-    async with AsyncOAuth2Client(
+    client = AsyncOAuth2Client(
         client_id=GOOGLE_CLIENT_ID,
         redirect_uri=GOOGLE_REDIRECT_URI,
         scope="openid email profile",
-    ) as client:
-        uri, state = client.create_authorization_url(
-            "https://accounts.google.com/o/oauth2/v2/auth",
-            access_type="offline",
-        )
+    )
+    uri, state = client.create_authorization_url(
+        "https://accounts.google.com/o/oauth2/v2/auth",
+        access_type="offline",
+    )
     return RedirectResponse(uri)
 
 
 @router.get("/callback")
 async def google_callback(request: Request, code: str, state: str):
-    async with AsyncOAuth2Client(
+    import httpx
+    
+    client = AsyncOAuth2Client(
         client_id=GOOGLE_CLIENT_ID,
         client_secret=GOOGLE_CLIENT_SECRET,
         redirect_uri=GOOGLE_REDIRECT_URI,
-    ) as client:
-        await client.fetch_token(
-            "https://oauth2.googleapis.com/token",
-            code=code,
+    )
+    token = await client.fetch_token(
+        "https://oauth2.googleapis.com/token",
+        code=code,
+    )
+    access_token = token.get("access_token")
+
+    async with httpx.AsyncClient() as http:
+        resp = await http.get(
+            "https://www.googleapis.com/oauth2/v3/userinfo",
+            headers={"Authorization": f"Bearer {access_token}"},
         )
-        userinfo = await client.get("https://www.googleapis.com/oauth2/v3/userinfo")
-        userinfo = userinfo.json()
+    userinfo = resp.json()
 
     if userinfo.get("email") != ALLOWED_EMAIL:
         raise HTTPException(status_code=403, detail="Unauthorized email")
@@ -254,7 +264,7 @@ async def totp_setup(request: Request):
 
     img = qrcode.make(uri)
     buffer = io.BytesIO()
-    img.save(buffer, format="PNG")
+    img.save(buffer, format="PNG")  # type: ignore[call-arg]
     qr_base64 = base64.b64encode(buffer.getvalue()).decode()
 
     return {
@@ -374,7 +384,7 @@ async def approve_confirm(token: str, request: Request):
     return response
 
 
-def _create_session_response(supabase) -> JSONResponse:
+def _create_session_response(supabase):
     raw_token = secrets.token_hex(64)
     token_hash = hashlib.sha512(raw_token.encode()).hexdigest()
     expires_at = (datetime.now(timezone.utc) + timedelta(hours=6)).isoformat()

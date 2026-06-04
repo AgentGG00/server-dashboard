@@ -18,7 +18,7 @@ MAIL_FROM = os.getenv("MAIL_FROM")
 ALLOWED_EMAIL = os.getenv("ALLOWED_EMAIL")
 FRONTEND_URL = os.getenv("FRONTEND_URL")
 
-BYPASS_PATHS = {"/health", "/auth/google", "/auth/callback", "/auth/approve"}
+BYPASS_PATHS = {"/health", "/api/auth/google", "/api/auth/callback", "/api/auth/approve"}
 
 
 class DeviceCheckMiddleware(BaseHTTPMiddleware):
@@ -28,7 +28,10 @@ class DeviceCheckMiddleware(BaseHTTPMiddleware):
         if any(path.startswith(p) for p in BYPASS_PATHS):
             return await call_next(request)
 
-        ip = request.client.host
+        ip = request.client.host if request.client else None
+        if not ip:
+            return JSONResponse(status_code=403, content={"detail": "Forbidden"})
+
         user_agent = request.headers.get("user-agent", "")
 
         if not ip.startswith(TAILSCALE_SUBNET_PREFIX):
@@ -75,6 +78,8 @@ class DeviceCheckMiddleware(BaseHTTPMiddleware):
 
 
 def _send_approve_email(raw_token: str):
+    assert MAIL_FROM is not None
+    assert ALLOWED_EMAIL is not None
     approve_url = f"{FRONTEND_URL}/approve/{raw_token}"
     body = f"Neues Gerät möchte Zugang zum Dashboard.\n\nApprove-Link (10 Minuten gültig):\n{approve_url}"
 
@@ -84,9 +89,9 @@ def _send_approve_email(raw_token: str):
     msg["To"] = ALLOWED_EMAIL
 
     try:
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as smtp:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as smtp:  # type: ignore[arg-type]
             smtp.starttls()
-            smtp.login(SMTP_USER, SMTP_PASSWORD)
-            smtp.sendmail(MAIL_FROM, ALLOWED_EMAIL, msg.as_string())
+            smtp.login(SMTP_USER, SMTP_PASSWORD)  # type: ignore[arg-type]
+            smtp.sendmail(MAIL_FROM, ALLOWED_EMAIL, msg.as_string())  # type: ignore[arg-type]
     except Exception as e:
         print(f"Email-Versand fehlgeschlagen: {e}")
