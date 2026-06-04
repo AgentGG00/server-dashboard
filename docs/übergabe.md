@@ -152,7 +152,10 @@ Tabellen in `src/db/migrations/0001_init_tables.sql`:
 - Session-Token: raw token als httponly Cookie, SHA-512 Hash in DB
 - 3-Monats-Key: TOTP-Skip für bekannte Geräte, SHA-512 gehasht in DB
 - Passwort-Reset: One-Time-URL, 10min Gültigkeit, eigener GET-Endpunkt zur Validierung
-- `/auth/verify` liest `session_token` Cookie, filtert `pending_totp: true`
+- `/api/auth/verify` liest `session_token` Cookie, filtert `pending_totp: true`
+- Alle Auth-Routen unter `/api/auth/...` – Router-Prefix geändert
+- Alle Settings-Routen unter `/api/settings/...` – Router-Prefix geändert
+- `BYPASS_PATHS` in `device_check.py` auf `/api/auth/...` aktualisiert
 
 **Email:**
 - Brevo SMTP (`smtp-relay.brevo.com:587` mit STARTTLS)
@@ -168,10 +171,18 @@ Tabellen in `src/db/migrations/0001_init_tables.sql`:
 
 **Sonstiges:**
 - SvelteKit Build läuft in GitHub Actions, nicht auf der VM (1GB RAM reicht nicht)
-- Supabase Ping alle 3-4 Tage via Cron-Job auf Oracle VM – bereits eingerichtet
+- Supabase Keep-Alive: Cron-Job auf Oracle VM alle 2 Tage – ruft `/rest/v1/rpc/ping` auf (echte DB-Abfrage, nicht Health-Endpoint)
+- Supabase SQL-Funktion `ping()` in Supabase angelegt (leere plpgsql-Funktion)
 - `requirements.txt` im Root, Patch-Version eingefroren (`~=X.Y.Z`)
+- `qrcode[pil]~=8.2.0` in requirements.txt – `[pil]`-Extra erforderlich
 - `VITE_API_URL` für Frontend-API-Calls (nicht `process.env`)
 - Migrations liegen in `src/db/migrations/`
+
+**Pylance / Type-Fixes:**
+- `AsyncOAuth2Client` ohne `async with` – kein Context Manager, kein `aclose()`
+- `str | None` Guards via `assert` vor SMTP-Calls in `auth.py`, `settings.py`, `device_check.py`
+- `supabase_service.py`: `row: Any = result.data[0]` um Pylance-Typ-Konflikte zu umgehen
+- `# type: ignore[arg-type]` auf SMTP-Calls, `# type: ignore[call-arg]` auf `img.save()`
 
 **Deployment:**
 - Dockerfile: Multi-Stage Build – Node für Frontend-Build, Python als Runtime, supervisord verwaltet beide Prozesse
@@ -181,17 +192,14 @@ Tabellen in `src/db/migrations/0001_init_tables.sql`:
 - TLS via Certbot + Cloudflare DNS-Challenge, Zertifikat liegt auf VM unter `/etc/letsencrypt`
 - GHCR Push und GitHub Release nutzen PAT (Org Secret `PAT`) damit nachfolgende Workflow-Trigger feuern
 - `.env` wird beim Bootstrap direkt aus Org Secret `DASHBOARD_ENV` geschrieben
+- `GOOGLE_REDIRECT_URI` in `.env` muss auf `https://dashboard.framenode.net/api/auth/callback` zeigen
 
 ---
 
 ## Nächste Schritte
 
-1. DNS-Eintrag `dashboard.framenode.net` auf Oracle VM IP setzen (Cloudflare)
-2. Certbot + Cloudflare DNS-Challenge auf VM einrichten, Zertifikat ausstellen
-3. PR auf main – Pipeline durchlaufen lassen
-4. Supabase Migration ausführen
-5. Erstes Deployment prüfen (bootstrap)
-6. Bootstrap auf false setzen
-
-
-bottstrap fehler beheben 
+1. Commit + Push auf `dev` → PR auf `main` → Pipeline durchlaufen lassen
+2. Supabase Migration via GitHub Integration triggern (leerer Commit auf `main`)
+3. Erstes Deployment prüfen (bootstrap)
+4. Bootstrap auf false setzen
+5. Live-Test: Google OAuth Login auf `/login`
